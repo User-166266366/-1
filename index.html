@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6f2">
+  <title>日常待辦清單</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202a26;
+      --muted: #758078;
+      --paper: #f5f6f2;
+      --surface: #fff;
+      --line: #e5e9e3;
+      --green: #39745b;
+      --green-dark: #285840;
+      --coral: #c76d54;
+      --soft-green: #edf4ee;
+      --shadow: 0 24px 70px rgba(34, 52, 42, 0.09);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 48px 20px;
+      background:
+        radial-gradient(ellipse at 12% 10%, rgba(216, 229, 213, 0.55), transparent 34%),
+        radial-gradient(ellipse at 90% 92%, rgba(239, 222, 209, 0.4), transparent 30%),
+        var(--paper);
+      color: var(--ink);
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(100%, 620px);
+      margin: 0 auto;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0 0 18px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+    }
+
+    .topline::before {
+      width: 22px;
+      height: 2px;
+      background: var(--coral);
+      content: "";
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 8vw, 46px);
+      font-weight: 750;
+      letter-spacing: 0;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin: 12px 0 30px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .list-panel {
+      overflow: hidden;
+      border: 1px solid rgba(220, 226, 218, 0.9);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .entry-form {
+      display: flex;
+      gap: 10px;
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .entry-form input {
+      min-width: 0;
+      flex: 1;
+      padding: 13px 15px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      outline: none;
+      background: #fbfcfa;
+      color: var(--ink);
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .entry-form input::placeholder {
+      color: #a0aaa2;
+    }
+
+    .entry-form input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(57, 116, 91, 0.12);
+    }
+
+    .add-button {
+      flex: 0 0 auto;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 6px;
+      background: var(--green);
+      color: white;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background 160ms ease, transform 160ms ease;
+    }
+
+    .add-button:hover {
+      background: var(--green-dark);
+    }
+
+    .add-button:active {
+      transform: translateY(1px);
+    }
+
+    .list-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 22px 12px;
+    }
+
+    .list-heading h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .count {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .task-list {
+      margin: 0;
+      padding: 0 12px 12px;
+      list-style: none;
+    }
+
+    .task-item {
+      display: flex;
+      min-height: 58px;
+      align-items: center;
+      gap: 13px;
+      padding: 10px 10px;
+      border-top: 1px solid #f0f2ef;
+      animation: arrive 220ms ease both;
+    }
+
+    .task-check {
+      width: 19px;
+      height: 19px;
+      flex: 0 0 auto;
+      margin: 0;
+      accent-color: var(--green);
+      cursor: pointer;
+    }
+
+    .task-text {
+      min-width: 0;
+      flex: 1;
+      overflow-wrap: anywhere;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .task-item.is-complete .task-text {
+      color: #9aa39c;
+      text-decoration: line-through;
+      text-decoration-color: #aab4ab;
+    }
+
+    .delete-button {
+      flex: 0 0 auto;
+      padding: 7px 9px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: #8a938c;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .delete-button:hover {
+      background: #fbefeb;
+      color: var(--coral);
+    }
+
+    .empty-state {
+      padding: 30px 18px 34px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .empty-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 12px;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--soft-green);
+      color: var(--green);
+      font-size: 20px;
+    }
+
+    .footnote {
+      margin: 16px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(57, 116, 91, 0.28);
+      outline-offset: 2px;
+    }
+
+    @keyframes arrive {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 34px 14px;
+      }
+
+      .subtitle {
+        margin-bottom: 22px;
+      }
+
+      .entry-form {
+        gap: 8px;
+        padding: 14px;
+      }
+
+      .entry-form input {
+        padding: 12px;
+      }
+
+      .add-button {
+        padding: 0 15px;
+      }
+
+      .list-heading {
+        padding-right: 17px;
+        padding-left: 17px;
+      }
+
+      .task-list {
+        padding-right: 8px;
+        padding-left: 8px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <p class="topline">MY DAILY LIST</p>
+    <h1>日常待辦</h1>
+    <p class="subtitle">把想做的事一件一件完成，今天也慢慢來。</p>
+
+    <section class="list-panel" aria-label="待辦清單">
+      <form class="entry-form" id="task-form">
+        <input
+          id="task-input"
+          type="text"
+          placeholder="新增一件待辦事項..."
+          aria-label="待辦事項內容"
+          maxlength="200"
+          autocomplete="off"
+          required
+        >
+        <button class="add-button" type="submit">新增</button>
+      </form>
+
+      <div class="list-heading">
+        <h2>我的清單</h2>
+        <span class="count" id="task-count" aria-live="polite"></span>
+      </div>
+
+      <ul class="task-list" id="task-list"></ul>
+      <div class="empty-state" id="empty-state" hidden>
+        <span class="empty-mark" aria-hidden="true">✓</span>
+        目前沒有待辦，先新增一件小事吧。
+      </div>
+    </section>
+
+    <p class="footnote">你的清單會自動保存在這台裝置上。</p>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "daily-todo-list";
+    const form = document.querySelector("#task-form");
+    const input = document.querySelector("#task-input");
+    const taskList = document.querySelector("#task-list");
+    const taskCount = document.querySelector("#task-count");
+    const emptyState = document.querySelector("#empty-state");
+
+    function loadTasks() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(saved)
+          ? saved.filter(task =>
+              task &&
+              typeof task.id === "string" &&
+              typeof task.text === "string" &&
+              typeof task.completed === "boolean"
+            )
+          : [];
+      } catch {
+        return [];
+      }
+    }
+
+    let tasks = loadTasks();
+
+    function saveTasks() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      } catch {
+        // 清單仍可在目前頁面使用；瀏覽器儲存空間不可用時不影響操作。
+      }
+    }
+
+    function createId() {
+      return typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+
+    function renderTasks() {
+      taskList.replaceChildren();
+
+      const remaining = tasks.filter(task => !task.completed).length;
+      taskCount.textContent = `尚有 ${remaining} 件未完成`;
+      emptyState.hidden = tasks.length > 0;
+
+      for (const task of tasks) {
+        const item = document.createElement("li");
+        item.className = `task-item${task.completed ? " is-complete" : ""}`;
+
+        const checkbox = document.createElement("input");
+        checkbox.className = "task-check";
+        checkbox.type = "checkbox";
+        checkbox.checked = task.completed;
+        checkbox.setAttribute("aria-label", `完成：${task.text}`);
+        checkbox.addEventListener("change", () => {
+          task.completed = checkbox.checked;
+          saveTasks();
+          renderTasks();
+        });
+
+        const text = document.createElement("span");
+        text.className = "task-text";
+        text.textContent = task.text;
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-button";
+        deleteButton.type = "button";
+        deleteButton.textContent = "刪除";
+        deleteButton.setAttribute("aria-label", `刪除：${task.text}`);
+        deleteButton.addEventListener("click", () => {
+          tasks = tasks.filter(item => item.id !== task.id);
+          saveTasks();
+          renderTasks();
+        });
+
+        item.append(checkbox, text, deleteButton);
+        taskList.append(item);
+      }
+    }
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const text = input.value.trim();
+
+      if (!text) {
+        input.focus();
+        return;
+      }
+
+      tasks.push({
+        id: createId(),
+        text,
+        completed: false
+      });
+
+      saveTasks();
+      renderTasks();
+      form.reset();
+      input.focus();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>
